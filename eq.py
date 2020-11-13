@@ -1,3 +1,4 @@
+import sys
 from itertools import combinations
 import subprocess
 
@@ -201,7 +202,7 @@ def sat_to_board(size, result):
             measure = 'Q' if int(result[i*size+j]) > 0 else '_'
             print(measure, end=' ')
         print()
-    print("===============")
+    print("=="*size)
 
 
 def print_board(board):
@@ -224,9 +225,21 @@ def compare_board(new_board, boards):
     return True
 
 
-
 if __name__ == '__main__':
-    size = 8
+    args = sys.argv
+    if len(args) >= 2:
+        try:
+            size = int(args[1])
+        except ValueError:
+            print('N MUST BE AN INTEGER GREATER THAN 0.')
+            exit()
+        if size <= 0:
+            print('N MUST BE GREATER THAN 0.')
+            exit()
+    else:
+        size = 8
+    print(size, "-QUEEN", sep='')
+    print("=="*size)
     cnf_vars = assign_var(size)
 
     eightqeen_rule = create_eightqueen_rule_cnf(size, cnf_vars)
@@ -252,7 +265,7 @@ if __name__ == '__main__':
 
         result_qb = QueenBoard(size, result)
         if compare_board(result_qb, result_boards):
-            result_boards.append(result_qb)
+            result_boards.insert(0, result_qb)
             sat_to_board(size, result)
             counter += 1
 
