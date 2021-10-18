@@ -227,6 +227,19 @@ def compare_board(new_board, boards):
 
 if __name__ == '__main__':
     args = sys.argv
+
+    if len(args) == 3:
+        mode_arg = args[2]
+        if mode_arg == 'one':
+            only_one = True
+        elif mode_arg == 'all':
+            only_one = False
+        else:
+            print('MODE MUST BE \'one\' OR \'all\'')
+            exit()
+    else:
+        only_one = False
+
     if len(args) >= 2:
         try:
             size = int(args[1])
@@ -264,6 +277,9 @@ if __name__ == '__main__':
                 break
 
         result_qb = QueenBoard(size, result)
+        if only_one:
+            sat_to_board(size, result)
+            break
         if compare_board(result_qb, result_boards):
             result_boards.insert(0, result_qb)
             sat_to_board(size, result)
