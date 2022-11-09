@@ -1,6 +1,7 @@
 import sys
 from itertools import combinations
 import subprocess
+import argparse
 
 
 class QueenBoard:
@@ -226,34 +227,33 @@ def compare_board(new_board, boards):
 
 
 if __name__ == '__main__':
-    args = sys.argv
+    parser = argparse.ArgumentParser()
+    parser.add_argument("size", type=int, help="the number of queens")
+    parser.add_argument("-a", "--answers", required=False, choices=['one', 'all'], default='all', help="find only one answer or all answers")
+    parser.add_argument("-nd", "--no_display", required=False, action='store_true', help="do not display answers (only when find all answers)")
 
-    if len(args) == 3:
-        mode_arg = args[2]
-        if mode_arg == 'one':
-            only_one = True
-        elif mode_arg == 'all':
-            only_one = False
-        else:
-            print('MODE MUST BE \'one\' OR \'all\'')
-            exit()
-    else:
+    args = parser.parse_args()
+
+    mode_arg = args.answers
+    if mode_arg == 'one':
+        only_one = True
+    elif mode_arg == 'all':
         only_one = False
-
-    if len(args) >= 2:
-        try:
-            size = int(args[1])
-        except ValueError:
-            print('N MUST BE AN INTEGER GREATER THAN 0.')
-            exit()
-        if size <= 0:
-            print('N MUST BE GREATER THAN 0.')
-            exit()
     else:
-        size = 8
+        print('MODE MUST BE \'one\' OR \'all\'')
+        exit()
+
+    size = args.size
+    if size <= 0:
+        print('N MUST BE GREATER THAN 0.')
+        exit()
+
     print(size, "-QUEEN", sep='')
-    print("=="*size)
     cnf_vars = assign_var(size)
+
+    show_board = (not args.no_display) or only_one
+    if show_board:
+        print("=="*size)
 
     eightqeen_rule = create_eightqueen_rule_cnf(size, cnf_vars)
     cnf_line = eightqeen_rule
@@ -278,13 +278,16 @@ if __name__ == '__main__':
 
         result_qb = QueenBoard(size, result)
         if only_one:
-            sat_to_board(size, result)
+            if show_board:
+                sat_to_board(size, result)
             break
         if compare_board(result_qb, result_boards):
             result_boards.insert(0, result_qb)
-            sat_to_board(size, result)
+            if show_board:
+                sat_to_board(size, result)
             counter += 1
 
         queens = list(filter(lambda x: x > 0, map(lambda x: int(x), result)))
         cnf_line.append(' '.join(list(map(lambda x: '-'+str(x), queens)) + ['0']))
-    print("ANSWERS:", counter)
+    if only_one is False:
+        print("ANSWERS:", counter)
