@@ -258,6 +258,7 @@ if __name__ == '__main__':
     eightqeen_rule = create_eightqueen_rule_cnf(size, cnf_vars)
     cnf_line = eightqeen_rule
     counter = 0
+    solver_called_times = 0
     result_boards = []
     while True:
         input_cnf = ["p cnf " + str(size**2) + " " + str(len(cnf_line))] + cnf_line
@@ -267,6 +268,7 @@ if __name__ == '__main__':
 
         subprocess.run(["./minisat", "-verb=0", "eightqueen.cnf", "output.txt"],
                        stdout=subprocess.DEVNULL)
+        solver_called_times += 1
 
         with open('output.txt', 'r') as f:
             outputlines = f.readlines()
@@ -291,3 +293,4 @@ if __name__ == '__main__':
         cnf_line.append(' '.join(list(map(lambda x: '-'+str(x), queens)) + ['0']))
     if only_one is False:
         print("ANSWERS:", counter)
+        print("SAT Solver was called", solver_called_times, "times.")
