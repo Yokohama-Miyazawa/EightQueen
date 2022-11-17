@@ -73,6 +73,24 @@ class QueenBoard:
         mirrors.append(self.mirror_backslash(self.board))
         return mirrors
 
+    # バリエーション解も含めた各解のCNF変数リストを返す
+    def get_variation_cnfs(self):
+        cnfs = []
+        cnfs.append(self.board_to_queen_variable(self.size, self.board))
+        for spin in self.spins:
+            cnfs.append(self.board_to_queen_variable(self.size, spin))
+        for mirror in  self.mirrors:
+            cnfs.append(self.board_to_queen_variable(self.size, mirror))
+        return cnfs
+
+    # 盤面情報からクイーンの存在するCNF変数のリストを返す
+    def board_to_queen_variable(self, size, board):
+        cnf = []
+        for i in range(size):
+            queen = [i for i, x in enumerate(board[i]) if x == 'Q'][0] + (1 + size * i)
+            cnf.append(queen)
+        return cnf
+
 
 def contrast_index(size, i):
     return size - i - 1
@@ -289,8 +307,9 @@ if __name__ == '__main__':
                 sat_to_board(size, result)
             counter += 1
 
-        queens = list(filter(lambda x: x > 0, map(lambda x: int(x), result)))
-        cnf_line.append(' '.join(list(map(lambda x: '-'+str(x), queens)) + ['0']))
+        for cnf in result_qb.get_variation_cnfs():
+            cnf_line.append(' '.join(list(map(lambda x: '-'+str(x), cnf)) + ['0']))
+
     if only_one is False:
         print("ANSWERS:", counter)
         print("SAT Solver was called", solver_called_times, "times.")
