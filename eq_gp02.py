@@ -1,6 +1,8 @@
 from itertools import combinations
-import subprocess
 import argparse
+import re
+from pysat.formula import CNF
+from pysat.solvers import Solver
 
 
 class QueenBoard:
@@ -259,23 +261,17 @@ if __name__ == '__main__':
     counter = 0
     solver_called_times = 0
     result_boards = []
+    split_data = list(map(lambda x: list(filter(lambda z: z != 0, list(map(lambda y: int(y), re.split('\s+', x))))), cnf_line))
+
     while True:
-        input_cnf = ["p cnf " + str(size**2) + " " + str(len(cnf_line))] + cnf_line
+        input_cnf = CNF(from_clauses=split_data)
 
-        with open('eightqueen.cnf', 'w') as f:
-            f.write('\n'.join(input_cnf) + '\n')
-
-        subprocess.run(["./minisat", "-verb=0", "eightqueen.cnf", "output.txt"],
-                       stdout=subprocess.DEVNULL)
-        solver_called_times += 1
-
-        with open('output.txt', 'r') as f:
-            outputlines = f.readlines()
-            if len(outputlines) >= 2:
-                (status, result) = (outputlines[0], outputlines[1].split())
-            else:
-                status = outputlines[0]
+        with Solver(bootstrap_with=input_cnf) as solver:
+            status = solver.solve()
+            solver_called_times += 1
+            if status is False:
                 break
+            result = solver.get_model()
 
         result_qb = QueenBoard(size, result)
         if only_one:
@@ -289,7 +285,8 @@ if __name__ == '__main__':
             counter += 1
 
         queens = list(filter(lambda x: x > 0, map(lambda x: int(x), result)))
-        cnf_line.append(' '.join(list(map(lambda x: '-'+str(x), queens)) + ['0']))
+        split_data.append(list(map(lambda y: -1 * y, queens)))
+
     if only_one is False:
         print("ANSWERS:", counter)
         print("SAT Solver was called", solver_called_times, "times.")
