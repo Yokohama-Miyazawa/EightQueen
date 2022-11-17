@@ -1,5 +1,4 @@
 from itertools import combinations
-import subprocess
 import argparse
 import re
 from pysat.formula import CNF
